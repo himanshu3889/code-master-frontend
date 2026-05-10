@@ -1,0 +1,153 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* Design tokens */
+  --cm-primary: #6c5ce7;
+  --cm-primary-light: #a29bfe;
+  --cm-accent: #00cec9;
+  --cm-accent-light: #81ecec;
+  --cm-success: #00b894;
+  --cm-error: #e17055;
+  --cm-warning: #fdcb6e;
+  --cm-surface-dark: #1a1a2e;
+  --cm-surface-darker: #16213e;
+  --cm-surface-card: #1e293b;
+  --cm-surface-hover: #2d3748;
+  --cm-text-primary: #e2e8f0;
+  --cm-text-secondary: #94a3b8;
+  --cm-border: rgba(255, 255, 255, 0.08);
+  --cm-gradient-primary: linear-gradient(135deg, #6c5ce7 0%, #00cec9 100%);
+  --cm-gradient-surface: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+  --cm-shadow-glow: 0 0 20px rgba(108, 92, 231, 0.15);
+  --cm-radius: 12px;
+  --cm-radius-sm: 8px;
+  --cm-radius-lg: 16px;
+}
+
+#root {
+  height: 100vh;
+}
+
+main {
+  height: calc(100vh - 130px);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(108, 92, 231, 0.3); }
+  50% { box-shadow: 0 0 20px 4px rgba(108, 92, 231, 0.15); }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Glass morphism utility */
+.glass {
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--cm-border);
+}
+
+/* Status badge styles */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.status-success {
+  background: rgba(0, 184, 148, 0.15);
+  color: #00b894;
+  border: 1px solid rgba(0, 184, 148, 0.3);
+}
+
+.status-error {
+  background: rgba(225, 112, 85, 0.15);
+  color: #e17055;
+  border: 1px solid rgba(225, 112, 85, 0.3);
+}
+
+.status-warning {
+  background: rgba(253, 203, 110, 0.15);
+  color: #fdcb6e;
+  border: 1px solid rgba(253, 203, 110, 0.3);
+}
+
+.status-pending {
+  background: rgba(108, 92, 231, 0.15);
+  color: #a29bfe;
+  border: 1px solid rgba(108, 92, 231, 0.3);
+}
+
+/* Plain mode editor */
+.plain-mode-editor .monaco-editor span[class^="mtk"] {
+  color: inherit !important;
+  font-weight: normal !important;
+  font-style: normal !important;
+  text-decoration: none !important;
+}

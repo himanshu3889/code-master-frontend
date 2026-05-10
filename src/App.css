@@ -1,0 +1,148 @@
+/* Problem page grid layout */
+.problem-container {
+  display: grid;
+  grid-template-rows: 1fr;
+  grid-template-columns: 1fr 6px 1fr;
+  transition: all 0.3s ease-in-out;
+}
+
+.problem-container.expanded {
+  grid-template-columns: 1fr;
+}
+
+.problem-container.leftshrinked {
+  grid-template-columns: 5% 95%;
+}
+
+.problem-container.rightshrinked {
+  grid-template-columns: 95% 5%;
+}
+
+.problem-layout {
+  height: 100%;
+  max-height: calc(100% - 70px);
+}
+
+.problem-resizer {
+  cursor: ew-resize;
+  width: 5px;
+  order: 2;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.problem-resizer:hover {
+  background-color: var(--cm-primary);
+}
+
+/* Problems list page styles */
+.problems-page {
+  min-height: 100vh;
+  background: var(--cm-gradient-surface);
+}
+
+.problem-row {
+  transition: all 0.2s ease;
+  border-bottom: 1px solid var(--cm-border);
+}
+
+.problem-row:hover {
+  background: var(--cm-surface-hover) !important;
+  transform: translateX(4px);
+}
+
+/* Problem detail panel */
+.panel-card {
+  background: var(--cm-surface-card);
+  border: 1px solid var(--cm-border);
+  border-radius: var(--cm-radius);
+  overflow: hidden;
+  transition: border-color 0.2s ease;
+}
+
+.panel-card:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Timeline styles */
+.timeline-entry {
+  position: relative;
+  padding-left: 28px;
+  padding-bottom: 24px;
+  animation: fadeInUp 0.3s ease-out forwards;
+  opacity: 0;
+}
+
+.timeline-entry::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  bottom: 0;
+  width: 2px;
+  background: var(--cm-border);
+}
+
+.timeline-entry:last-child::before {
+  display: none;
+}
+
+.timeline-entry::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--cm-primary);
+  border: 2px solid var(--cm-surface-dark);
+}
+
+.timeline-entry.snapshot::after {
+  background: var(--cm-accent);
+}
+
+.timeline-entry.submission-success::after {
+  background: var(--cm-success);
+}
+
+.timeline-entry.submission-error::after {
+  background: var(--cm-error);
+}
+
+/* Hero section */
+.hero-gradient {
+  background: linear-gradient(135deg, rgba(108, 92, 231, 0.1) 0%, rgba(0, 206, 201, 0.05) 100%);
+  border-bottom: 1px solid var(--cm-border);
+}
+
+/* Animated gradient text */
+.gradient-text {
+  background: var(--cm-gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Card hover glow */
+.card-glow {
+  transition: box-shadow 0.3s ease;
+}
+
+.card-glow:hover {
+  box-shadow: var(--cm-shadow-glow);
+}
+
+/* Test case input/output display */
+.code-block {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--cm-border);
+  border-radius: var(--cm-radius-sm);
+  padding: 12px 16px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.85rem;
+  color: var(--cm-text-primary);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
