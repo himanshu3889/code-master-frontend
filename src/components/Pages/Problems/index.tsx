@@ -21,18 +21,23 @@ export default function ProblemsSet({ problems }: { problems: Problem[] }) {
   useEffect(() => {
     if (lastMessage?.event === 'problem.new') {
       const newProblem = lastMessage.data as Problem;
-      
+
       setActiveProblems((prev) => {
-        if (prev.some(p => p.id === newProblem.id)) return prev;
+        const existingIdx = prev.findIndex(p => p.id === newProblem.id);
+        if (existingIdx !== -1) {
+          const next = [...prev];
+          next[existingIdx] = { ...next[existingIdx], ...newProblem };
+          return next;
+        }
         return [newProblem, ...prev];
       });
-      
+
       setLiveNewProblemIds((prev) => {
         const next = new Set(prev);
         next.add(newProblem.id);
         return next;
       });
-      
+
       setIsLoading(true);
       const timer = setTimeout(() => {
         setIsLoading(false);
@@ -75,9 +80,9 @@ export default function ProblemsSet({ problems }: { problems: Problem[] }) {
           setIsLoading(false);
           return;
         }
-        
+
         setLiveNewProblemIds(new Set());
-        
+
         if (!q && s) {
           const res = await getProblems(50, s);
           setActiveProblems(res);

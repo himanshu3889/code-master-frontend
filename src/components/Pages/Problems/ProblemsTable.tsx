@@ -124,7 +124,7 @@ export default function ProblemsTable({
       }),
       columnHelper.accessor((row) => row.group, {
         id: 'Group',
-        header: () => <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.6 }}>Contest</span>,
+        header: () => <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.6 }}>Group</span>,
         cell: (info) => (
           <Typography variant="body2" sx={{ color: theme.textSecondary, fontSize: '0.8rem' }}>
             {info.getValue() || '—'}

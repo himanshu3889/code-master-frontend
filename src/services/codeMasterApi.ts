@@ -42,7 +42,7 @@ export const getProblem = async (id: string): Promise<Problem> => {
 };
 
 export const createProblem = async (data: Partial<Problem>): Promise<Problem> => {
-  const response = await api.post<Problem>('/api/problems', data);
+  const response = await api.post<Problem>('/', data);
   return response.data;
 };
 
