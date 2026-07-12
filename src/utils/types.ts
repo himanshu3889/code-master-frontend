@@ -11,7 +11,7 @@ export interface contextWrapperProps {
 
 // ==================== Backend Model Types ====================
 
-// 
+//
 export interface TestCase {
   input: string;
   output: string;
@@ -76,7 +76,7 @@ export const problemDifficultyColors: Record<ProblemDifficultyLevel, string> = {
   [ProblemDifficultyLevel.HARD]: '#ff2d55',
 };
 
-// 
+//
 export interface Problem {
   id: string;
   name: string;
@@ -96,7 +96,7 @@ export interface Problem {
   updatedAt: string;
 }
 
-// 
+//
 export interface Language {
   id: string;
   name: string;
@@ -104,7 +104,7 @@ export interface Language {
   createdAt: string;
 }
 
-// 
+//
 export interface CodeSnapshot {
   id: string;
   problemId: string;
@@ -113,7 +113,7 @@ export interface CodeSnapshot {
   createdAt: string;
 }
 
-// 
+//
 export type ExecutionStatus =
   | 'AC'
   | 'CE'
@@ -122,7 +122,7 @@ export type ExecutionStatus =
   | 'TLE'
   | 'MLE';
 
-// 
+//
 export interface TestResult {
   testIndex: number;
   passed: boolean;
@@ -133,7 +133,7 @@ export interface TestResult {
   stdout?: string;
 }
 
-// 
+//
 export interface Submission {
   id: string;
   problemId: string;
@@ -150,7 +150,7 @@ export interface Submission {
   createdAt: string;
 }
 
-// 
+//
 export interface Timeline {
   id: string;
   problemId: string;
@@ -159,7 +159,7 @@ export interface Timeline {
   createdAt: string;
 }
 
-// 
+//
 export interface DetailedTimeline {
   timelineId: number;
   timelineCreatedAt: string;
@@ -224,3 +224,16 @@ export const executionStatusColors: Record<ExecutionStatus, string> = {
   TLE: '#ff6d00',
   MLE: '#ff6d00',
 };
+
+// Pagination wrapper for page-based API responses
+export interface PaginatedResponse<T> {
+  data: T;
+  total_count: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+  next_page?: number;
+  prev_page?: number;
+  has_next: boolean;
+  has_prev: boolean;
+}

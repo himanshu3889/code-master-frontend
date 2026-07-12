@@ -6,15 +6,21 @@ import {
   Submission,
   Timeline,
   DetailedTimeline,
+  PaginatedResponse,
 } from '../utils/types';
 
 // ==================== Problems ====================
 
-export const getProblems = async (limit = 50, status?: string): Promise<Problem[]> => {
-  const params = new URLSearchParams({ limit: limit.toString() });
-  if (status) params.append('status', status);
-  const response = await api.get<Problem[]>(`/api/problems?${params.toString()}`);
-  return response.data;
+export const getProblems = async (limit = 50, status?: string, page = 1): Promise<Problem[]> => {
+  const params = new URLSearchParams({
+    limit: limit.toString(),
+    page: page.toString(),
+  });
+  if (status) {
+    params.append('status', status)
+  };
+  const response = await api.get<PaginatedResponse<Problem[]>>(`/api/problems?${params.toString()}`);
+  return response.data.data;
 };
 
 export const getProblemsAfter = async (afterId: string, limit = 50): Promise<Problem[]> => {
@@ -77,8 +83,8 @@ export const getProblemWithSubmissions = async (
 
 export const searchProblemsFuzzy = async (q: string, status?: string, limit = 20): Promise<Problem[]> => {
   const params = new URLSearchParams();
-  if (q) params.append('q', q);
-  if (status) params.append('status', status);
+  if (q) { params.append('q', q) };
+  if (status) { params.append('status', status) };
   params.append('limit', limit.toString());
   const response = await api.get<{ results: Problem[] }>(`/api/problems/search?${params.toString()}`);
   return response.data.results || [];
