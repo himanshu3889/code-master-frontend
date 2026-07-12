@@ -26,13 +26,13 @@ const CodeEditor: React.FC<{
         automaticLayout: true,
         scrollBeyondLastLine: false,
         minimap: { enabled: false },
-        ...(isPlainMode ? {
-          quickSuggestions: false,
-          suggestOnTriggerCharacters: false,
-          wordBasedSuggestions: 'off',
-          parameterHints: { enabled: false },
-          snippetSuggestions: 'none',
-        } : {})
+        quickSuggestions: !isPlainMode,
+        suggestOnTriggerCharacters: !isPlainMode,
+        wordBasedSuggestions: isPlainMode ? 'off' : 'matchingDocuments',
+        parameterHints: { enabled: !isPlainMode },
+        snippetSuggestions: isPlainMode ? 'none' : 'inline',
+        occurrencesHighlight: (isPlainMode ? false : true) as any,
+        selectionHighlight: !isPlainMode,
       }}
       onChange={(val, ev) => {
         setLocalCode(val || '');

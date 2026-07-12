@@ -151,3 +151,12 @@ main {
   font-style: normal !important;
   text-decoration: none !important;
 }
+
+/* Hide the occurrences and selection highlighting rectangular boxes in plain mode */
+.plain-mode-editor .monaco-editor .wordHighlight,
+.plain-mode-editor .monaco-editor .wordHighlightStrong,
+.plain-mode-editor .monaco-editor .selectionHighlight {
+  display: none !important;
+  background: transparent !important;
+  border: none !important;
+}

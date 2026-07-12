@@ -34,6 +34,7 @@ import useFullScreen from '../../../hooks/useFullScreen';
 import { getGridColumnStyles, getGridTemplateColumns } from '../../../utils/helpers';
 import { getProblem, getProblemWithSubmissions, getLanguages } from '../../../services/codeMasterApi';
 import { getThemeColors } from '../../../constants/uiColors';
+import RunTestcasesDialog from './RunTestcasesDialog';
 
 // Simplified theme type
 type theme = any;
@@ -56,6 +57,7 @@ export default function ProblemPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isPlainMode, setIsPlainMode] = useState(false);
+  const [isRunDialogOpen, setIsRunDialogOpen] = useState(false);
 
   // Snapshot websocket ticker variables
   const codeRef = useRef(code);
@@ -151,7 +153,7 @@ export default function ProblemPage() {
     }
   }, [lastMessage, id, queryClient]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (testCases: string[]) => {
     if (!id || !codeRef.current.trim()) return;
     setIsSubmitting(true);
     try {
@@ -160,6 +162,7 @@ export default function ProblemPage() {
         language: language,
         stdin: codeRef.current,
         code: codeRef.current,
+        testCases: testCases,
       } as any);
 
       queryClient.setQueryData(['problem-submissions', id], (old: any) => {
@@ -171,6 +174,7 @@ export default function ProblemPage() {
       });
 
       setCurrentTab(0); // switch to submissions tab (which is now on the right side)
+      setIsRunDialogOpen(false);
     } catch (err) {
       toast.error('Failed to submit code');
       console.error(err);
@@ -408,7 +412,7 @@ export default function ProblemPage() {
                 setHasUnsavedChanges(false);
               }}
               isSubmitting={isSubmitting}
-              onSubmit={handleSubmit}
+              onSubmit={() => setIsRunDialogOpen(true)}
               isFullScreenEnabled={isFullScreenEnabled ?? false}
               onToggleFullScreen={toggleFullScreen}
               isLeftPanelExpanded={isLeftPanelExpanded}
@@ -533,6 +537,14 @@ export default function ProblemPage() {
           </CustomTabPanel>
         </div>
       </div>
+      
+      <RunTestcasesDialog
+        open={isRunDialogOpen}
+        onClose={() => setIsRunDialogOpen(false)}
+        onSubmit={handleSubmit}
+        defaultTestCases={problem?.testCases?.map((tc: any) => tc.input) || []}
+        isSubmitting={isSubmitting}
+      />
     </Layout>
   );
 }

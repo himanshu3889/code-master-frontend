@@ -126,9 +126,11 @@ export type ExecutionStatus =
 export interface TestResult {
   testIndex: number;
   passed: boolean;
-  actualOutput: string;
-  expectedOutput: string;
-  error?: string;
+  status: ExecutionStatus;
+  timeMs: number;
+  memoryBytes: number;
+  stderr?: string;
+  stdout?: string;
 }
 
 // 
@@ -143,7 +145,7 @@ export interface Submission {
   stdin: string;
   stdout?: string;
   stderr?: string;
-  testInputs: string[];
+  testCases: string[];
   testResults: TestResult[];
   createdAt: string;
 }

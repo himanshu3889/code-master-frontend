@@ -118,68 +118,129 @@ export default function ProblemSubmissions({ data }: { data: Submission[] }) {
               )}
             </Box>
 
+            {/* Single test result preview outside */}
+            {sub.testResults && sub.testResults.length === 1 && sub.testResults[0].stdout && !sub.testResults[0].stdout.includes('\n') && sub.testResults[0].stdout.length < 100 && (
+              <Box sx={{ mt: 0.5, px: 0.5 }}>
+                <Typography variant="caption" sx={{ color: theme.textSecondary, fontFamily: 'monospace' }}>
+                  ↳ Output: <span style={{ color: theme.textPrimary }}>{sub.testResults[0].stdout}</span>
+                </Typography>
+              </Box>
+            )}
+
             <Collapse in={isExpanded} timeout="auto" unmountOnExit>
               <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                {/* Stdout */}
-                {sub.stdout && (
-                  <Box>
-                    <Typography variant="caption" sx={{ color: theme.textSecondary, fontWeight: 600 }}>Standard Output</Typography>
-                    <Box
-                      sx={{
-                        p: 1.5,
-                        mt: 0.5,
-                        borderRadius: '6px',
-                        bgcolor: theme.bgSelectOption,
-                        border: `1px solid ${theme.borderSecondary}`,
-                        maxHeight: '200px',
-                        overflowY: 'auto',
-                      }}
-                    >
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          color: theme.textPrimary,
-                          fontFamily: 'monospace',
-                          whiteSpace: 'pre-wrap',
-                          wordBreak: 'break-word',
-                          fontSize: '0.75rem',
-                        }}
-                      >
-                        {sub.stdout}
-                      </Typography>
-                    </Box>
-                  </Box>
-                )}
+                {sub.testResults && sub.testResults.length > 0 ? (
+                  sub.testResults.map((tr, i) => {
+                    const isSingleLineStdout = tr.stdout && !tr.stdout.includes('\n') && tr.stdout.length < 100;
+                    const isSingleLineStderr = tr.stderr && !tr.stderr.includes('\n') && tr.stderr.length < 100;
 
-                {/* Stderr for errors */}
-                {sub.stderr && (
-                  <Box>
-                    <Typography variant="caption" sx={{ color: theme.textSecondary, fontWeight: 600 }}>Standard Error</Typography>
-                    <Box
-                      sx={{
-                        p: 1.5,
-                        mt: 0.5,
-                        borderRadius: '6px',
-                        bgcolor: `${theme.danger}10`,
-                        border: `1px solid ${theme.danger}40`,
-                        maxHeight: '200px',
-                        overflowY: 'auto',
-                      }}
-                    >
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          color: theme.danger,
-                          fontFamily: 'monospace',
-                          whiteSpace: 'pre-wrap',
-                          wordBreak: 'break-word',
-                          fontSize: '0.75rem',
-                        }}
-                      >
-                        {sub.stderr}
-                      </Typography>
-                    </Box>
-                  </Box>
+                    return (
+                      <Box key={i} sx={{ borderTop: i > 0 ? `1px solid ${theme.borderSecondary}` : 'none', pt: i > 0 ? 1.5 : 0 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                          <Typography variant="caption" sx={{ color: theme.textSecondary, fontWeight: 600 }}>
+                            Case {tr.testIndex + 1}
+                            <span style={{ color: tr.passed ? '#00b894' : theme.danger, marginLeft: '8px' }}>
+                              {tr.passed ? 'Passed' : executionStatusLabels[tr.status] || 'Failed'}
+                            </span>
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: theme.textTertiary }}>
+                            {tr.timeMs}ms • {tr.memoryBytes / 1000}KB
+                          </Typography>
+                        </Box>
+
+                        {sub.testCases && sub.testCases[tr.testIndex] && (
+                          <Box sx={{ mt: 1 }}>
+                            <Typography variant="caption" sx={{ color: theme.textSecondary, fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Input</Typography>
+                            {(() => {
+                              const input = sub.testCases[tr.testIndex];
+                              const isSingleLineInput = !input.includes('\n') && input.length < 100;
+                              return isSingleLineInput ? (
+                                <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: theme.textPrimary, fontFamily: 'monospace', p: 1, bgcolor: theme.bgSecondary, borderRadius: '6px', border: `1px solid ${theme.borderSecondary}` }}>
+                                  {input}
+                                </Typography>
+                              ) : (
+                                <Box sx={{ p: 1.5, mt: 0.5, borderRadius: '6px', bgcolor: theme.bgSecondary, border: `1px solid ${theme.borderSecondary}`, maxHeight: '200px', overflowY: 'auto' }}>
+                                  <Typography variant="caption" sx={{ color: theme.textPrimary, fontFamily: 'monospace', whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '0.75rem' }}>
+                                    {input}
+                                  </Typography>
+                                </Box>
+                              );
+                            })()}
+                          </Box>
+                        )}
+
+                        {tr.stdout && (
+                          <Box sx={{ mt: 1 }}>
+                            <Typography variant="caption" sx={{ color: theme.textSecondary, fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Output</Typography>
+                            {isSingleLineStdout ? (
+                              <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: theme.textPrimary, fontFamily: 'monospace', p: 1, bgcolor: theme.bgSecondary, borderRadius: '6px', border: `1px solid ${theme.borderSecondary}` }}>
+                                {tr.stdout}
+                              </Typography>
+                            ) : (
+                              <Box sx={{ p: 1.5, mt: 0.5, borderRadius: '6px', bgcolor: theme.bgSecondary, border: `1px solid ${theme.borderSecondary}`, maxHeight: '200px', overflowY: 'auto' }}>
+                                <Typography variant="caption" sx={{ color: theme.textPrimary, fontFamily: 'monospace', whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '0.75rem' }}>
+                                  {tr.stdout}
+                                </Typography>
+                              </Box>
+                            )}
+                          </Box>
+                        )}
+
+                        {tr.stderr && (
+                          <Box sx={{ mt: 1 }}>
+                            <Typography variant="caption" sx={{ color: theme.textSecondary, fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Error</Typography>
+                            {isSingleLineStderr ? (
+                              <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: theme.danger, fontFamily: 'monospace', p: 1, bgcolor: `${theme.danger}10`, borderRadius: '4px' }}>
+                                {tr.stderr}
+                              </Typography>
+                            ) : (
+                              <Box sx={{ p: 1.5, mt: 0.5, borderRadius: '6px', bgcolor: `${theme.danger}10`, border: `1px solid ${theme.danger}40`, maxHeight: '200px', overflowY: 'auto' }}>
+                                <Typography variant="caption" sx={{ color: theme.danger, fontFamily: 'monospace', whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '0.75rem' }}>
+                                  {tr.stderr}
+                                </Typography>
+                              </Box>
+                            )}
+                          </Box>
+                        )}
+                      </Box>
+                    );
+                  })
+                ) : (
+                  <>
+                    {/* Fallback to global stdout/stderr */}
+                    {sub.stdin && (
+                      <Box sx={{ mt: 1 }}>
+                        <Typography variant="caption" sx={{ color: theme.textSecondary, fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Standard Input</Typography>
+                        <Box sx={{ p: 1.5, mt: 0.5, borderRadius: '6px', bgcolor: theme.bgSecondary, border: `1px solid ${theme.borderSecondary}`, maxHeight: '200px', overflowY: 'auto' }}>
+                          <Typography variant="caption" sx={{ color: theme.textPrimary, fontFamily: 'monospace', whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '0.75rem' }}>
+                            {sub.stdin}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    )}
+
+                    {sub.stdout && (
+                      <Box sx={{ mt: 1 }}>
+                        <Typography variant="caption" sx={{ color: theme.textSecondary, fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Standard Output</Typography>
+                        <Box sx={{ p: 1.5, mt: 0.5, borderRadius: '6px', bgcolor: theme.bgSecondary, border: `1px solid ${theme.borderSecondary}`, maxHeight: '200px', overflowY: 'auto' }}>
+                          <Typography variant="caption" sx={{ color: theme.textPrimary, fontFamily: 'monospace', whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '0.75rem' }}>
+                            {sub.stdout}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    )}
+
+                    {sub.stderr && (
+                      <Box sx={{ mt: 1 }}>
+                        <Typography variant="caption" sx={{ color: theme.textSecondary, fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Standard Error</Typography>
+                        <Box sx={{ p: 1.5, mt: 0.5, borderRadius: '6px', bgcolor: `${theme.danger}10`, border: `1px solid ${theme.danger}40`, maxHeight: '200px', overflowY: 'auto' }}>
+                          <Typography variant="caption" sx={{ color: theme.danger, fontFamily: 'monospace', whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '0.75rem' }}>
+                            {sub.stderr}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    )}
+                  </>
                 )}
               </Box>
             </Collapse>
