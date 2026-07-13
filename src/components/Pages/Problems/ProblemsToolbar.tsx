@@ -3,7 +3,7 @@ import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import ClearOutlinedIcon from '@mui/icons-material/ClearOutlined';
 import RestartAltOutlinedIcon from '@mui/icons-material/RestartAltOutlined';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import { ProblemStatus, problemStatusLabels } from '../../../utils/types';
+import { ProblemStatus, problemStatusLabels } from '../../../constants/statuses';
 import { usethemeUtils } from '../../../context/ThemeWrapper';
 import { getThemeColors } from '../../../constants/uiColors';
 

@@ -1,4 +1,4 @@
-import { ShrinkAction, ShrinkState } from '../../utils/types';
+import { ShrinkAction, ShrinkState } from '../../constants/statuses';
 
 export const initialShrinkState = {
   shrinkleftpanel: false,

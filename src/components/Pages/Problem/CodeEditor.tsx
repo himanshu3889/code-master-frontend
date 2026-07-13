@@ -6,9 +6,10 @@ const CodeEditor: React.FC<{
   language: string;
   theme: string;
   isPlainMode?: boolean;
+  readOnly?: boolean;
   onChange: OnChange | undefined;
   onMount: OnMount | undefined;
-}> = ({ code, language, theme, isPlainMode, onChange, onMount }) => {
+}> = ({ code, language, theme, isPlainMode, readOnly, onChange, onMount }) => {
   const [localCode, setLocalCode] = useState(code);
 
   useEffect(() => {
@@ -26,13 +27,14 @@ const CodeEditor: React.FC<{
         automaticLayout: true,
         scrollBeyondLastLine: false,
         minimap: { enabled: false },
-        quickSuggestions: !isPlainMode,
-        suggestOnTriggerCharacters: !isPlainMode,
-        wordBasedSuggestions: isPlainMode ? 'off' : 'matchingDocuments',
-        parameterHints: { enabled: !isPlainMode },
-        snippetSuggestions: isPlainMode ? 'none' : 'inline',
-        occurrencesHighlight: (isPlainMode ? false : true) as any,
-        selectionHighlight: !isPlainMode,
+        readOnly: readOnly || false,
+        quickSuggestions: !isPlainMode && !readOnly,
+        suggestOnTriggerCharacters: !isPlainMode && !readOnly,
+        wordBasedSuggestions: isPlainMode || readOnly ? 'off' : 'matchingDocuments',
+        parameterHints: { enabled: !isPlainMode && !readOnly },
+        snippetSuggestions: isPlainMode || readOnly ? 'none' : 'inline',
+        occurrencesHighlight: (isPlainMode || readOnly ? false : true) as any,
+        selectionHighlight: !isPlainMode && !readOnly,
       }}
       onChange={(val, ev) => {
         setLocalCode(val || '');

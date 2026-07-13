@@ -12,11 +12,14 @@
 
   /* Design tokens */
   --cm-primary: #6c5ce7;
+  --cm-primary-hover: #5b4cdb;
   --cm-primary-light: #a29bfe;
   --cm-accent: #00cec9;
   --cm-accent-light: #81ecec;
   --cm-success: #00b894;
   --cm-error: #e17055;
+  --cm-danger: #e74c3c;
+  --cm-danger-hover: #c0392b;
   --cm-warning: #fdcb6e;
   --cm-surface-dark: #1a1a2e;
   --cm-surface-darker: #16213e;

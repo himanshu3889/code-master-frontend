@@ -1,6 +1,5 @@
 import { createTheme, CssBaseline, ThemeProvider } from '@mui/material';
 import { createContext, FC, useContext, useMemo, useState } from 'react';
-import { contextWrapperProps, themeContext } from '../utils/types';
 
 export const ThemeWrapperContext = createContext<themeContext>({
   toggleColorMode: () => {},

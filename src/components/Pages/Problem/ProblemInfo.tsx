@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Chip, Stack, Typography, Link as MuiLink, Button, TextField, Select, MenuItem, FormControl } from '@mui/material';
-import { Problem, ProblemStatus, ProblemDifficultyLevel, problemStatusLabels, problemDifficultyLabels } from '../../../utils/types';
+import { Problem, ProblemStatus, ProblemDifficultyLevel, problemStatusLabels, problemDifficultyLabels } from '../../../constants/statuses';
 import AccessTimeOutlinedIcon from '@mui/icons-material/AccessTimeOutlined';
 import MemoryOutlinedIcon from '@mui/icons-material/MemoryOutlined';
 import OpenInNewOutlinedIcon from '@mui/icons-material/OpenInNewOutlined';
@@ -14,7 +14,8 @@ import { toast } from 'sonner';
 
 const ProblemDescription: React.FC<{
   problem: Problem | null;
-}> = ({ problem }) => {
+  isInterviewMode?: boolean;
+}> = ({ problem, isInterviewMode }) => {
   const { colorMode } = usethemeUtils();
   const isDark = colorMode === 'dark';
   const theme = getThemeColors(colorMode as 'dark' | 'light');
@@ -345,7 +346,13 @@ const ProblemDescription: React.FC<{
                     Expected Output
                   </Typography>
                   <Box className="code-block" sx={{ fontSize: '0.8rem' }}>
-                    {tc.output || '(empty)'}
+                    {isInterviewMode ? (
+                      <span style={{ fontStyle: 'italic', color: 'var(--cm-text-secondary)' }}>
+                        Hidden during Interview Mode
+                      </span>
+                    ) : (
+                      tc.output || '(empty)'
+                    )}
                   </Box>
                 </Box>
               </Box>

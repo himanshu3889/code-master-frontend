@@ -1,4 +1,4 @@
-import { useParams } from 'react-router';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { Monaco } from '@monaco-editor/react';
 import * as monaco from '@monaco-editor/react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -8,7 +8,12 @@ import { createSubmission } from '../../../services/codeMasterApi';
 import {
   Backdrop,
   Box,
+  Button,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
   Typography,
 } from '@mui/material';
@@ -32,9 +37,11 @@ import ChevronRightOutlinedIcon from '@mui/icons-material/ChevronRightOutlined';
 import OpenInNewOutlinedIcon from '@mui/icons-material/OpenInNewOutlined';
 import useFullScreen from '../../../hooks/useFullScreen';
 import { getGridColumnStyles, getGridTemplateColumns } from '../../../utils/helpers';
-import { getProblem, getProblemWithSubmissions, getLanguages } from '../../../services/codeMasterApi';
+import { getProblem, getProblemWithSubmissions, getLanguages, getInterviewSessionsForProblem, getInterviewSession, createInterviewSession, completeInterviewSession, timeoutInterviewSession } from '../../../services/codeMasterApi';
 import { getThemeColors } from '../../../constants/uiColors';
 import RunTestcasesDialog from './RunTestcasesDialog';
+
+import { useInterviewSessionTimer } from '../../../hooks/useInterviewSession';
 
 // Simplified theme type
 type theme = any;
@@ -58,6 +65,27 @@ export default function ProblemPage() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isPlainMode, setIsPlainMode] = useState(false);
   const [isRunDialogOpen, setIsRunDialogOpen] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedSessionId = searchParams.get('interview_session');
+  const [dismissTimeoutOverlay, setDismissTimeoutOverlay] = useState(false);
+  const [isEndSessionDialogOpen, setIsEndSessionDialogOpen] = useState(false);
+
+  // Fetch all interview sessions for this problem
+  const { data: sessionsData } = useQuery({
+    queryKey: ['problem-interview-sessions', id],
+    queryFn: () => getInterviewSessionsForProblem(id!),
+    enabled: !!id,
+  });
+  const sessions = sessionsData?.sessions ?? [];
+
+  // Fetch details of the selected session
+  const { data: selectedSessionDetails } = useQuery({
+    queryKey: ['interview-session', selectedSessionId],
+    queryFn: () => getInterviewSession(selectedSessionId!),
+    enabled: !!selectedSessionId,
+  });
+  const selectedSession = selectedSessionDetails?.session ?? null;
+  const remainingSeconds = useInterviewSessionTimer(selectedSession);
 
   // Snapshot websocket ticker variables
   const codeRef = useRef(code);
@@ -66,10 +94,15 @@ export default function ProblemPage() {
   const [lastSavedCode, setLastSavedCode] = useState('');
   const lastSavedCodeRef = useRef('');
   const sendMessageRef = useRef(sendMessage);
+  const selectedSessionIdRef = useRef(selectedSessionId);
 
   useEffect(() => {
     sendMessageRef.current = sendMessage;
   }, [sendMessage]);
+
+  useEffect(() => {
+    selectedSessionIdRef.current = selectedSessionId;
+  }, [selectedSessionId]);
 
   useEffect(() => {
     lastSavedCodeRef.current = lastSavedCode;
@@ -92,6 +125,7 @@ export default function ProblemPage() {
             problemId: id,
             language: languageRef.current,
             code: currentCode,
+            interviewSessionId: selectedSessionIdRef.current,
           }
         });
         lastSentCodeRef.current = currentCode;
@@ -136,7 +170,7 @@ export default function ProblemPage() {
       if (isCurrentProblem) {
         if (lastMessage.event === 'problem.submission' || lastMessage.event === 'submission.result') {
           const payload = lastMessage.data;
-          queryClient.setQueryData(['problem-submissions', id], (old: any) => {
+          queryClient.setQueryData(['problem-submissions', id, selectedSessionId], (old: any) => {
             if (!old) return old;
             return {
               ...old,
@@ -153,6 +187,48 @@ export default function ProblemPage() {
     }
   }, [lastMessage, id, queryClient]);
 
+  // Reset timeout overlay when switching sessions
+  useEffect(() => {
+    setDismissTimeoutOverlay(false);
+  }, [selectedSessionId]);
+
+  // Handle interview session timeout
+  useEffect(() => {
+    if (selectedSession?.status === 'IN_PROGRESS' && remainingSeconds === 0) {
+      toast.error("Time's up! Your session has expired.");
+      timeoutInterviewSession(selectedSession.id)
+        .then(() => {
+          setDismissTimeoutOverlay(false);
+          queryClient.invalidateQueries({ queryKey: ['interview-session', selectedSessionId] });
+          queryClient.invalidateQueries({ queryKey: ['problem-interview-sessions', id] });
+          queryClient.invalidateQueries({ queryKey: ['problem-submissions', id, selectedSessionId] });
+        })
+        .catch(console.error);
+    }
+  }, [selectedSession, remainingSeconds, selectedSessionId, id, queryClient]);
+
+  const handleRunClick = () => {
+    if (selectedSession?.status === 'IN_PROGRESS' && remainingSeconds === 0) {
+      toast.error("Time's up! You cannot run code anymore.");
+      return;
+    }
+    setIsRunDialogOpen(true);
+  };
+
+  const handleEndSession = async () => {
+    if (!selectedSession?.id) return;
+    try {
+      await completeInterviewSession(selectedSession.id);
+      toast.success('Interview session ended successfully.');
+      queryClient.invalidateQueries({ queryKey: ['interview-session', selectedSessionId] });
+      queryClient.invalidateQueries({ queryKey: ['problem-interview-sessions', id] });
+      queryClient.invalidateQueries({ queryKey: ['problem-submissions', id, selectedSessionId] });
+      setIsEndSessionDialogOpen(false);
+    } catch {
+      toast.error('Failed to end interview session');
+    }
+  };
+
   const handleSubmit = async (testCases: string[]) => {
     if (!id || !codeRef.current.trim()) return;
     setIsSubmitting(true);
@@ -163,9 +239,10 @@ export default function ProblemPage() {
         stdin: codeRef.current,
         code: codeRef.current,
         testCases: testCases,
+        interviewSessionId: selectedSession?.id ?? null,
       } as any);
 
-      queryClient.setQueryData(['problem-submissions', id], (old: any) => {
+      queryClient.setQueryData(['problem-submissions', id, selectedSessionId], (old: any) => {
         if (!old) return { problem: null, submissions: [newSubmission] };
         return {
           ...old,
@@ -222,8 +299,8 @@ export default function ProblemPage() {
 
   // Fetch submissions
   const { data: submissionsData } = useQuery({
-    queryKey: ['problem-submissions', id],
-    queryFn: () => getProblemWithSubmissions(id!),
+    queryKey: ['problem-submissions', id, selectedSessionId],
+    queryFn: () => getProblemWithSubmissions(id!, selectedSessionId),
     enabled: !!id,
   });
 
@@ -268,7 +345,7 @@ export default function ProblemPage() {
   const secondPanelTabLabels = useMemo(() => ['Submissions', 'Description', 'Notes'], []);
 
   const memoizedSubmissions = useMemo(() => <ProblemSubmissions data={submissionsData?.submissions ?? []} />, [submissionsData?.submissions]);
-  const memoizedDescription = useMemo(() => <ProblemDescription problem={problem ?? null} />, [problem]);
+  const memoizedDescription = useMemo(() => <ProblemDescription problem={problem ?? null} isInterviewMode={!!selectedSessionId} />, [problem, selectedSessionId]);
   const memoizedNotes = useMemo(() => <ProblemNotes problem={problem ?? null} />, [problem]);
 
   const handleTabChange = (
@@ -412,7 +489,7 @@ export default function ProblemPage() {
                 setHasUnsavedChanges(false);
               }}
               isSubmitting={isSubmitting}
-              onSubmit={() => setIsRunDialogOpen(true)}
+              onSubmit={handleRunClick}
               isFullScreenEnabled={isFullScreenEnabled ?? false}
               onToggleFullScreen={toggleFullScreen}
               isLeftPanelExpanded={isLeftPanelExpanded}
@@ -420,10 +497,72 @@ export default function ProblemPage() {
               shrinkLeftPanel={shrinkState.shrinkleftpanel ?? false}
               onShrinkLeftHandler={shrinkLeftHandler}
               panelBorder={panelBorder}
+              sessions={sessions}
+              selectedSessionId={selectedSessionId}
+              onSelectSession={(sessionId) => {
+                const newParams = new URLSearchParams(searchParams);
+                if (sessionId) {
+                  newParams.set('interview_session', sessionId);
+                } else {
+                  newParams.delete('interview_session');
+                }
+                setSearchParams(newParams, { replace: true });
+                if (sessionId) {
+                  queryClient.invalidateQueries({ queryKey: ['problem-submissions', id, sessionId] });
+                }
+              }}
+              onStartNewInterview={async () => {
+                try {
+                  const data = await createInterviewSession(id!, 2700);
+                  await queryClient.refetchQueries({ queryKey: ['problem-interview-sessions', id] });
+                  const newParams = new URLSearchParams(searchParams);
+                  newParams.set('interview_session', data.session.id);
+                  setSearchParams(newParams, { replace: true });
+                  toast.success('Interview started! 45 minutes on the clock.');
+                } catch {
+                  toast.error('Failed to start Interview');
+                }
+              }}
+              onEndSession={() => setIsEndSessionDialogOpen(true)}
+              remainingSeconds={remainingSeconds}
             />
 
               {/* Editor */}
-              <div className="tw-flex-1 tw-min-h-0 tw-pt-1">
+              <div className="tw-flex-1 tw-min-h-0 tw-pt-1 tw-relative">
+                {selectedSession?.status === 'TIMEOUT' && !dismissTimeoutOverlay && (
+                  <div className="tw-absolute tw-inset-0 tw-z-50 tw-flex tw-items-center tw-justify-center tw-bg-black/60 tw-backdrop-blur-sm">
+                    <Box
+                      sx={{
+                        bgcolor: theme.bgSecondary,
+                        p: 4,
+                        borderRadius: 3,
+                        textAlign: 'center',
+                        border: `1px solid ${theme.borderSecondary}`,
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                        maxWidth: 400,
+                      }}
+                    >
+                      <Typography variant="h4" sx={{ color: 'var(--cm-danger)', fontWeight: 700, mb: 2 }}>
+                        ⏱ Time's Up!
+                      </Typography>
+                      <Typography variant="body1" sx={{ color: theme.textPrimary, mb: 3 }}>
+                        Your 45-minute interview session has ended.
+                      </Typography>
+                        <Button
+                        variant="contained"
+                        onClick={() => { setDismissTimeoutOverlay(true); setCurrentTab(0); }}
+                        sx={{
+                          bgcolor: 'var(--cm-primary)',
+                          color: '#fff',
+                          textTransform: 'none',
+                          '&:hover': { bgcolor: 'var(--cm-primary-hover)' },
+                        }}
+                      >
+                        View Submissions
+                      </Button>
+                    </Box>
+                  </div>
+                )}
                 <CodeEditor
                 onMount={(editor, monacoInst) => {
                   editorRef.current = editor;
@@ -456,6 +595,7 @@ export default function ProblemPage() {
                 }}
                 code={code}
                 isPlainMode={isPlainMode}
+                readOnly={!!selectedSessionId && selectedSession?.status !== 'IN_PROGRESS'}
                 language={language === 'cpp' ? 'cpp' : language === 'csharp' ? 'csharp' : language}
                 theme={colorMode === 'light' ? 'mylightTheme' : 'mydarkTheme'}
               />
@@ -545,6 +685,53 @@ export default function ProblemPage() {
         defaultTestCases={problem?.testCases?.map((tc: any) => tc.input) || []}
         isSubmitting={isSubmitting}
       />
+
+      <Dialog
+        open={isEndSessionDialogOpen}
+        onClose={() => setIsEndSessionDialogOpen(false)}
+        PaperProps={{
+          sx: {
+            bgcolor: colorMode === 'dark' ? '#1e293b' : '#ffffff',
+            backgroundImage: 'none',
+            color: theme.textPrimary,
+            borderRadius: 3,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+          },
+        }}
+      >
+        <DialogTitle sx={{ borderBottom: `1px solid ${theme.borderSecondary}`, pb: 2 }}>
+          <Typography variant="h6" fontWeight={700}>
+            End Interview Session?
+          </Typography>
+        </DialogTitle>
+        <DialogContent sx={{ pt: 3 }}>
+          <Typography variant="body1" sx={{ color: theme.textSecondary }}>
+            Are you sure you want to end this interview? You will not be able to submit any more code, but your existing submissions will be preserved.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, borderTop: `1px solid ${theme.borderSecondary}`, gap: 1 }}>
+          <Button
+            onClick={() => setIsEndSessionDialogOpen(false)}
+            sx={{ color: theme.textSecondary, textTransform: 'none', flex: 1 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleEndSession}
+            sx={{
+              bgcolor: 'var(--cm-danger)',
+              color: '#fff',
+              textTransform: 'none',
+              flex: 1,
+              fontWeight: 600,
+              '&:hover': { bgcolor: 'var(--cm-danger-hover)' },
+            }}
+          >
+            End Session
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Layout>
   );
 }

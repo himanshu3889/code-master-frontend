@@ -1,5 +1,4 @@
 import { WEBSOCKET_URL } from "../utils/constants";
-import { IWebsocketMessage } from "../utils/types";
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 
 
@@ -37,7 +36,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
 
   // Track retry attempts and timeout
-  // Equal Jitter 
+  // Equal Jitter
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const retryCountRef = useRef(0);
   const maxRetries = 5;

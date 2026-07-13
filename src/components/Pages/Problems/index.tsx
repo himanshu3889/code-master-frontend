@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import debounce from 'lodash/debounce';
 import { searchProblemsFuzzy, getProblems, updateProblemStatus, updateProblemDifficulty } from '../../../services/codeMasterApi';
-import { Problem } from '../../../utils/types';
+import { Problem } from '../../../constants/statuses';
 import { Box } from '@mui/material';
 import CreateProblemModal from './CreateProblemModal';
 import { toast } from 'sonner';

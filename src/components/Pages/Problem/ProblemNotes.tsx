@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Button, Stack, TextField, Typography } from '@mui/material';
-import { Problem } from '../../../utils/types';
+import { Problem } from '../../../constants/statuses';
 import { usethemeUtils } from '../../../context/ThemeWrapper';
 import { getThemeColors } from '../../../constants/uiColors';
 import { updateProblemNotes } from '../../../services/codeMasterApi';

@@ -9,7 +9,7 @@ import {
   Stack,
   IconButton,
 } from '@mui/material';
-import { Problem } from '../../utils/types';
+import { Problem } from '../../constants/statuses';
 import { useNavigate, useParams } from 'react-router-dom';
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
 import { usethemeUtils } from '../../context/ThemeWrapper';

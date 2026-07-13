@@ -1,5 +1,5 @@
 import { Box, Stack, Typography, Chip } from '@mui/material';
-import { DetailedTimeline, executionStatusColors, executionStatusLabels, ExecutionStatus } from '../../../utils/types';
+import { executionStatusColors, executionStatusLabels } from '../../../constants/statuses';
 import { usethemeUtils } from '../../../context/ThemeWrapper';
 import { getThemeColors } from '../../../constants/uiColors';
 import { formatDate } from '../../../utils/helpers';

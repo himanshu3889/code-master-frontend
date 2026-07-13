@@ -1,13 +1,5 @@
 import api from '../API/Index';
-import {
-  Problem,
-  Language,
-  CodeSnapshot,
-  Submission,
-  Timeline,
-  DetailedTimeline,
-  PaginatedResponse,
-} from '../utils/types';
+import { Problem } from '../constants/statuses';
 
 // ==================== Problems ====================
 
@@ -73,11 +65,13 @@ export const updateProblemStatus = async (id: string, status: string): Promise<P
 };
 
 export const getProblemWithSubmissions = async (
-  id: string
+  id: string,
+  interviewSessionId?: string | null
 ): Promise<{ problem: Problem; submissions: Submission[] }> => {
-  const response = await api.get<{ problem: Problem; submissions: Submission[] }>(
-    `/api/problems/${id}/submissions`
-  );
+  const url = interviewSessionId
+    ? `/api/problems/${id}/submissions?interview_session=${interviewSessionId}`
+    : `/api/problems/${id}/submissions`;
+  const response = await api.get<{ problem: Problem; submissions: Submission[] }>(url);
   return response.data;
 };
 
@@ -107,12 +101,18 @@ export const createLanguage = async (data: { name: string; code: string }): Prom
   return response.data;
 };
 
+export const updateLanguageTemplate = async (code: string, template: string): Promise<{ code: string; template: string }> => {
+  const response = await api.patch<{ code: string; template: string }>(`/api/languages/${code}/template`, { template });
+  return response.data;
+};
+
 // ==================== Code Snapshots ====================
 
 export const createSnapshot = async (data: {
   problemId: string;
   language: string;
   code: string;
+  interviewSessionId?: string | null;
 }): Promise<CodeSnapshot> => {
   const response = await api.post<CodeSnapshot>('/api/snapshots', data);
   return response.data;
@@ -120,11 +120,13 @@ export const createSnapshot = async (data: {
 
 export const getSnapshotsByProblem = async (
   problemId: string,
+  interviewSessionId?: string | null,
   limit = 20
 ): Promise<CodeSnapshot[]> => {
-  const response = await api.get<CodeSnapshot[]>(
-    `/api/problems/${problemId}/snapshots?limit=${limit}`
-  );
+  const url = interviewSessionId
+    ? `/api/problems/${problemId}/snapshots?interview_session=${interviewSessionId}&limit=${limit}`
+    : `/api/problems/${problemId}/snapshots?limit=${limit}`;
+  const response = await api.get<CodeSnapshot[]>(url);
   return response.data;
 };
 
@@ -175,5 +177,53 @@ export const getDetailedTimeline = async (
   const response = await api.get<DetailedTimeline[]>(
     `/api/problems/${problemId}/story?limit=${limit}`
   );
+  return response.data;
+};
+
+// ==================== Interview Sessions ====================
+
+export const createInterviewSession = async (
+  problemId: string,
+  timeLimitSeconds = 2700
+): Promise<{ session: InterviewSession; remainingSeconds: number }> => {
+  const response = await api.post('/api/interview-sessions', { problemId, timeLimitSeconds });
+  return response.data;
+};
+
+export const getInterviewSession = async (
+  id: string
+): Promise<{ session: InterviewSession; remainingSeconds: number }> => {
+  const response = await api.get(`/api/interview-sessions/${id}`);
+  return response.data;
+};
+
+export const getActiveInterviewSession = async (
+  problemId: string
+): Promise<{ session: InterviewSession | null; remainingSeconds?: number }> => {
+  const response = await api.get(`/api/problems/${problemId}/active-session`);
+  return response.data;
+};
+
+export const completeInterviewSession = async (id: string): Promise<{ message: string }> => {
+  const response = await api.patch(`/api/interview-sessions/${id}/complete`);
+  return response.data;
+};
+
+export const abandonInterviewSession = async (id: string): Promise<{ message: string }> => {
+  const response = await api.patch(`/api/interview-sessions/${id}/abandon`);
+  return response.data;
+};
+
+export const timeoutInterviewSession = async (
+  id: string
+): Promise<{ message: string; autoSubmitted: boolean; submissionId?: string }> => {
+  const response = await api.post(`/api/interview-sessions/${id}/timeout`);
+  return response.data;
+};
+
+export const getInterviewSessionsForProblem = async (
+  problemId: string
+): Promise<{ sessions: InterviewSession[] }> => {
+  const response = await api.get(`/api/problems/${problemId}/interview-sessions`);
   return response.data;
 };

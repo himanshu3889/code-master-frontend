@@ -1,5 +1,3 @@
-import { TabPanelProps } from '../../utils/types';
-
 export default function CustomTabPanel(props: TabPanelProps) {
   const { children, value, innerDivClassName, wrapperClassName, index, ...other } = props;
 

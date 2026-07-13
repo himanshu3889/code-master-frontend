@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useReducer } from 'react';
 import { initialShrinkState, shrinkReducer } from '../components/reducers/ShrinkReducer';
-import { ShrinkActionKind } from '../utils/types';
+import { ShrinkActionKind } from '../constants/statuses';
 
 export default function useShrinkState({
   isLeftPanelExpanded,

@@ -21,7 +21,7 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { usethemeUtils } from '../../../context/ThemeWrapper';
 import { getThemeColors } from '../../../constants/uiColors';
 import { createProblem } from '../../../services/codeMasterApi';
-import { Problem, TestCase, ProblemDifficultyLevel, problemDifficultyLabels } from '../../../utils/types';
+import { Problem, ProblemDifficultyLevel, problemDifficultyLabels } from '../../../constants/statuses';
 
 interface CreateProblemModalProps {
   open: boolean;

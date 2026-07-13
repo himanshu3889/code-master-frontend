@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Problem } from '../../utils/types';
+import { Problem } from '../../constants/statuses';
 
 interface ProblemSlice {
   problems: Problem[];

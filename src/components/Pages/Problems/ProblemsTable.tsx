@@ -12,7 +12,7 @@ import { Box, Chip, IconButton, Select, MenuItem, Typography, LinearProgress, Ta
 import OpenInNewOutlinedIcon from '@mui/icons-material/OpenInNewOutlined';
 import { usethemeUtils } from '../../../context/ThemeWrapper';
 import { getThemeColors } from '../../../constants/uiColors';
-import { Problem, ProblemStatus, problemStatusColors, problemStatusLabels, ProblemDifficultyLevel, problemDifficultyLabels, problemDifficultyColors } from '../../../utils/types';
+import { Problem, ProblemStatus, ProblemDifficultyLevel, problemStatusColors, problemStatusLabels, problemDifficultyLabels, problemDifficultyColors } from '../../../constants/statuses';
 import { formatRelativeTime } from '../../../utils/helpers';
 
 interface ProblemsTableProps {
@@ -104,18 +104,18 @@ export default function ProblemsTable({
                 {name}
               </Link>
               {isNewLive && (
-                <Chip 
-                  label="NEW" 
-                  size="small" 
-                  sx={{ 
-                    height: 18, 
-                    fontSize: '0.65rem', 
-                    fontWeight: 700, 
-                    bgcolor: theme.primaryBgActive, 
-                    color: theme.primaryText, 
+                <Chip
+                  label="NEW"
+                  size="small"
+                  sx={{
+                    height: 18,
+                    fontSize: '0.65rem',
+                    fontWeight: 700,
+                    bgcolor: theme.primaryBgActive,
+                    color: theme.primaryText,
                     border: isDark ? `1px solid ${theme.primaryBorder}` : theme.primaryBorder,
-                    borderRadius: '6px' 
-                  }} 
+                    borderRadius: '6px'
+                  }}
                 />
               )}
             </Box>
@@ -281,7 +281,7 @@ export default function ProblemsTable({
             const name = row.original.name;
             const slug = `${problemId}-${name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`;
             const isNewLive = liveNewProblemIds.has(problemId);
-            
+
             return (
               <tr
                 key={row.id}
