@@ -44,6 +44,11 @@ export const createProblem = async (data: Partial<Problem>): Promise<Problem> =>
   return response.data;
 };
 
+export const updateProblemTags = async (id: string, tags: string[]): Promise<Problem> => {
+  const response = await api.patch<Problem>(`/api/problems/${id}/tags`, { tags });
+  return response.data;
+};
+
 export const updateProblemNotes = async (id: string, notes: string): Promise<Problem> => {
   const response = await api.patch<Problem>(`/api/problems/${id}/notes`, { notes });
   return response.data;
@@ -64,6 +69,8 @@ export const updateProblemStatus = async (id: string, status: string): Promise<P
   return response.data;
 };
 
+
+
 export const getProblemWithSubmissions = async (
   id: string,
   interviewSessionId?: string | null
@@ -73,6 +80,11 @@ export const getProblemWithSubmissions = async (
     : `/api/problems/${id}/submissions`;
   const response = await api.get<{ problem: Problem; submissions: Submission[] }>(url);
   return response.data;
+};
+
+export const getAllTags = async (): Promise<string[]> => {
+  const response = await api.get<{ tags: string[] }>('/api/problems/tags');
+  return response.data.tags;
 };
 
 export const searchProblemsFuzzy = async (q: string, status?: string, limit = 20): Promise<Problem[]> => {

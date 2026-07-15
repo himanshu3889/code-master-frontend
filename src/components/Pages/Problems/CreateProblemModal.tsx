@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -14,13 +14,15 @@ import {
   InputLabel,
   Select,
   SelectChangeEvent,
+  Chip,
+  Autocomplete,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { usethemeUtils } from '../../../context/ThemeWrapper';
 import { getThemeColors } from '../../../constants/uiColors';
-import { createProblem } from '../../../services/codeMasterApi';
+import { createProblem, getAllTags } from '../../../services/codeMasterApi';
 import { Problem, ProblemDifficultyLevel, problemDifficultyLabels } from '../../../constants/statuses';
 
 interface CreateProblemModalProps {
@@ -48,10 +50,18 @@ export default function CreateProblemModal({
     difficulty: ProblemDifficultyLevel.MEDIUM,
     rating: 0,
     notes: '',
+    tags: [] as string[],
   });
   const [testCases, setTestCases] = useState<TestCase[]>([{ input: '', output: '' }]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (open) {
+      getAllTags().then(tags => setAvailableTags(tags || [])).catch(console.error);
+    }
+  }, [open]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -96,13 +106,14 @@ export default function CreateProblemModal({
         difficultyLevel: formData.difficulty,
         rating: Number(formData.rating) || 0,
         notes: formData.notes,
+        tags: formData.tags,
         testCases: testCases.filter(tc => tc.input.trim() || tc.output.trim()),
       };
       const newProblem = await createProblem(payload);
       onSuccess(newProblem);
       setFormData({
         name: '', group: '', url: '', timeLimit: 2000, memoryLimit: 256,
-        description: '', difficulty: ProblemDifficultyLevel.MEDIUM, rating: 0, notes: ''
+        description: '', difficulty: ProblemDifficultyLevel.MEDIUM, rating: 0, notes: '', tags: []
       });
       setTestCases([{ input: '', output: '' }]);
       onClose();
@@ -270,6 +281,27 @@ export default function CreateProblemModal({
                 variant="outlined"
                 sx={{ ...textFieldStyles(theme) }}
               />
+              <Autocomplete
+                multiple
+                options={availableTags}
+                value={formData.tags}
+                onChange={(_, newValue) => {
+                  setFormData((prev) => ({ ...prev, tags: newValue }));
+                }}
+                renderTags={(value, getTagProps) =>
+                  value.map((option, index) => (
+                    <Chip variant="outlined" label={option} size="small" {...getTagProps({ index })} />
+                  ))
+                }
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Tags"
+                    placeholder="Select tags..."
+                    sx={{ ...textFieldStyles(theme) }}
+                  />
+                )}
+              />
               <TextField
                 label="Notes"
                 name="notes"
@@ -282,6 +314,8 @@ export default function CreateProblemModal({
                 variant="outlined"
                 sx={{ ...textFieldStyles(theme) }}
               />
+
+
             </Box>
 
             {/* Right Column: Test Cases */}

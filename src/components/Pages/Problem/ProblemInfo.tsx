@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Chip, Stack, Typography, Link as MuiLink, Button, TextField, Select, MenuItem, FormControl } from '@mui/material';
+import { Box, Chip, Stack, Typography, Link as MuiLink, Button, TextField, Select, MenuItem, FormControl, Autocomplete } from '@mui/material';
 import { Problem, ProblemStatus, ProblemDifficultyLevel, problemStatusLabels, problemDifficultyLabels } from '../../../constants/statuses';
 import AccessTimeOutlinedIcon from '@mui/icons-material/AccessTimeOutlined';
 import MemoryOutlinedIcon from '@mui/icons-material/MemoryOutlined';
@@ -8,7 +8,7 @@ import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
 import { usethemeUtils } from '../../../context/ThemeWrapper';
 import { getThemeColors } from '../../../constants/uiColors';
-import { updateProblemStatus, updateProblemDifficulty, updateProblemDescription } from '../../../services/codeMasterApi';
+import { updateProblemStatus, updateProblemDifficulty, updateProblemDescription, updateProblemTags, getAllTags } from '../../../services/codeMasterApi';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
@@ -25,11 +25,25 @@ const ProblemDescription: React.FC<{
   const [description, setDescription] = useState('');
   const [savingDesc, setSavingDesc] = useState(false);
 
+  const [isEditingTags, setIsEditingTags] = useState(false);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const [savingTags, setSavingTags] = useState(false);
+
   useEffect(() => {
     if (problem) {
       setDescription(problem.description || '');
     }
   }, [problem]);
+
+  useEffect(() => {
+    if (isEditingTags) {
+      setSelectedTags(problem?.tags || []);
+      if (availableTags.length === 0) {
+        getAllTags().then(tags => setAvailableTags(tags || [])).catch(console.error);
+      }
+    }
+  }, [isEditingTags, problem]);
 
   if (!problem) return null;
 
@@ -66,6 +80,20 @@ const ProblemDescription: React.FC<{
       toast.error('Failed to update description');
     } finally {
       setSavingDesc(false);
+    }
+  };
+
+  const handleSaveTags = async () => {
+    setSavingTags(true);
+    try {
+      await updateProblemTags(problem.id, selectedTags);
+      queryClient.setQueryData(['problem', String(problem.id)], (old: any) => ({ ...old, tags: selectedTags }));
+      setIsEditingTags(false);
+      toast.success('Tags updated');
+    } catch (err) {
+      toast.error('Failed to update tags');
+    } finally {
+      setSavingTags(false);
     }
   };
 
@@ -170,6 +198,107 @@ const ProblemDescription: React.FC<{
             </Select>
           </FormControl>
         </Box>
+      </Box>
+
+      {/* Tags Section */}
+      <Box>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700, color: theme.textPrimary, fontSize: '0.85rem' }}>
+            Tags
+          </Typography>
+          {!isEditingTags ? (
+            <Button
+              size="small"
+              startIcon={<EditOutlinedIcon />}
+              onClick={() => setIsEditingTags(true)}
+              sx={{ textTransform: 'none', color: theme.primary }}
+            >
+              Edit
+            </Button>
+          ) : (
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button
+                size="small"
+                onClick={() => {
+                  setIsEditingTags(false);
+                  setSelectedTags(problem.tags || []);
+                }}
+                sx={{ textTransform: 'none', color: theme.textSecondary }}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="small"
+                variant="contained"
+                startIcon={<SaveOutlinedIcon />}
+                onClick={handleSaveTags}
+                disabled={savingTags}
+                sx={{
+                  textTransform: 'none',
+                  bgcolor: 'var(--cm-primary)',
+                  '&:hover': { bgcolor: 'var(--cm-primary-hover)' },
+                }}
+              >
+                Save
+              </Button>
+            </Box>
+          )}
+        </Box>
+
+        {isEditingTags ? (
+          <Autocomplete
+            multiple
+            options={availableTags}
+            value={selectedTags}
+            onChange={(_, newValue) => {
+              setSelectedTags(newValue);
+            }}
+            renderTags={(value, getTagProps) =>
+              value.map((option, index) => (
+                <Chip variant="outlined" label={option} size="small" {...getTagProps({ index })} />
+              ))
+            }
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Tags"
+                placeholder="Select tags..."
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    bgcolor: theme.bgQuaternary,
+                    color: theme.textPrimary,
+                    borderRadius: '8px',
+                    '& fieldset': { borderColor: theme.borderPrimary },
+                    '&:hover fieldset': { borderColor: theme.primary },
+                    '&.Mui-focused fieldset': { borderColor: theme.primary },
+                  },
+                }}
+              />
+            )}
+          />
+        ) : (
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+            {problem.tags && problem.tags.length > 0 ? (
+              problem.tags.map((tag, idx) => (
+                <Chip
+                  key={idx}
+                  label={tag}
+                  size="small"
+                  sx={{
+                    fontSize: '0.75rem',
+                    bgcolor: theme.bgTertiary,
+                    color: theme.textSecondary,
+                    border: `1px solid ${theme.borderPrimary}`,
+                  }}
+                />
+              ))
+            ) : (
+              <Typography variant="body2" sx={{ color: theme.textTertiary, fontStyle: 'italic' }}>
+                No tags added.
+              </Typography>
+            )}
+          </Box>
+        )}
       </Box>
 
       {/* Description Section */}

@@ -84,39 +84,60 @@ export default function ProblemsTable({
         cell: (info) => {
           const problemId = info.row.original.id;
           const name = info.getValue() as string;
+          const tags = info.row.original.tags || [];
           const slug = `${problemId}-${name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`;
           const isNewLive = liveNewProblemIds.has(problemId);
           return (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <Link
-                to={`/problem/${slug}`}
-                style={{
-                  textDecoration: 'none',
-                  color: theme.textPrimary,
-                  fontWeight: 500,
-                  fontSize: '0.9rem',
-                  transition: 'color 0.2s',
-                }}
-                onClick={(e) => e.stopPropagation()}
-                onMouseEnter={(e) => (e.currentTarget.style.color = theme.primary)}
-                onMouseLeave={(e) => (e.currentTarget.style.color = theme.textPrimary)}
-              >
-                {name}
-              </Link>
-              {isNewLive && (
-                <Chip
-                  label="NEW"
-                  size="small"
-                  sx={{
-                    height: 18,
-                    fontSize: '0.65rem',
-                    fontWeight: 700,
-                    bgcolor: theme.primaryBgActive,
-                    color: theme.primaryText,
-                    border: isDark ? `1px solid ${theme.primaryBorder}` : theme.primaryBorder,
-                    borderRadius: '6px'
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Link
+                  to={`/problem/${slug}`}
+                  style={{
+                    textDecoration: 'none',
+                    color: theme.textPrimary,
+                    fontWeight: 500,
+                    fontSize: '0.9rem',
+                    transition: 'color 0.2s',
                   }}
-                />
+                  onClick={(e) => e.stopPropagation()}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = theme.primary)}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = theme.textPrimary)}
+                >
+                  {name}
+                </Link>
+                {isNewLive && (
+                  <Chip
+                    label="NEW"
+                    size="small"
+                    sx={{
+                      height: 18,
+                      fontSize: '0.65rem',
+                      fontWeight: 700,
+                      bgcolor: theme.primaryBgActive,
+                      color: theme.primaryText,
+                      border: isDark ? `1px solid ${theme.primaryBorder}` : theme.primaryBorder,
+                      borderRadius: '6px'
+                    }}
+                  />
+                )}
+              </Box>
+              {tags.length > 0 && (
+                <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                  {tags.map((tag, idx) => (
+                    <Chip 
+                      key={idx} 
+                      label={tag} 
+                      size="small" 
+                      sx={{ 
+                        height: 18, 
+                        fontSize: '0.65rem', 
+                        bgcolor: theme.bgTertiary, 
+                        color: theme.textSecondary, 
+                        border: `1px solid ${theme.borderPrimary}` 
+                      }} 
+                    />
+                  ))}
+                </Box>
               )}
             </Box>
           );

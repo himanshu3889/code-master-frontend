@@ -39,6 +39,7 @@ export interface Problem {
   status: ProblemStatus | string;
   savedCode: Record<string, string> | null;
   attemptCount: number;
+  tags?: string[];
   notes: string;
   createdAt: string;
   updatedAt: string;
